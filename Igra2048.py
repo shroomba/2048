@@ -11,38 +11,40 @@ class Igra:
         self.score=0
         self.s=0
         self.na_potezi=IGRALEC
-        self.nakljucno()
-        self.nakljucno()
+        par=self.nakljucno()
+        self.polje[par[0]][par[1]]=2
+        par=self.nakljucno()
+        self.povleci_narava(par)
         self.narisi()
-        
+        self.zgodovina.append((self.polje, NARAVA))
         self.igra()
 
     def novaigra(self):
         self.polje=[[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
         self.score=0
         self.s=0
+        par=self.nakljucno()
+        self.povleci_narava(par)
+        par=self.nakljucno()
+        self.povleci_narava(par)
         self.na_potezi=IGRALEC
-        self.polje=self.nakljucno()
-        self.polje=self.nakljucno()
-        self.narisi()
         self.igra()
 
 
     def igra(self):
-        #time.sleep(2)
-        self.narisi()
         if self.konec():
             print("KONEC")
         elif self.na_potezi==IGRALEC:
             #(poteza, vrednost)=self.minimax(3, 2)
             a=self.minimax(3, 2)
             poteza=a[0]
-            #print("iz igre")
-            #print(poteza)
+            print(poteza)
             self.povleci_igralec(poteza)
             self.igra()
         elif self.na_potezi==NARAVA:
-            self.povleci_narava()
+            par=self.nakljucno()
+            self.povleci_narava(par)
+            self.narisi()
             self.igra()
 
     def narisi(self):
@@ -80,9 +82,8 @@ class Igra:
         else: return False
 
     def shrani_pozicijo(self, polje, poteza):
-        self.zgodovina.append((polje, poteza))
-        #print(self.zgodovina)
-
+        polje_kopija=[vrstica[:] for vrstica in polje]
+        self.zgodovina.append((polje_kopija, poteza))
 
     def nakljucno(self):
         prazni_i=[]
@@ -92,10 +93,8 @@ class Igra:
                 if self.polje[i][j]==0:
                     prazni_i.append(i)
                     prazni_j.append(j)
-        ena=random.randrange(0, len(prazni_i)) #izbere prazno mesto
-        if random.randint(1, 10)<=2: a=4
-        else: a=2
-        self.polje[prazni_i[ena]][prazni_j[ena]]=a
+        ena=random.randint(0, len(prazni_i)-1)
+        return [prazni_i[ena], prazni_j[ena]]
 
     def poln(self, seznam):
         m=0
@@ -107,35 +106,22 @@ class Igra:
         return False
 
     def minimax(self, k, globina):
-        #print("minimax")
-        """
-
-        :rtype : vrednost
-        :return: integer
-        """
-        global potezni_par, potezni_par
         if globina == 0 or self.konec():
-            #print("konec minimax")
             return None, self.vrednost()
         else:
-            #print("else minimax")
             if self.na_potezi==IGRALEC:
-                #print("minimax igralec")
                 ocena=30000
                 for poteza in self.poteze_igralca(self.polje):
-                    #print("for igralec")
-                    polje=[vrstica[:] for vrstica in self.polje]
                     self.povleci_igralec(poteza)
                     (smt, vrednost) = self.minimax(k, globina-1)
-                    #print(poteza)
+                    print(poteza+" "+str(vrednost))
                     if vrednost<ocena:
                         ocena=vrednost
                         potezni_par=(poteza, ocena)
-                        #print(potezni_par)
-                    self.polje=self.zgodovina.pop()[0]
+                    self.zgodovina.pop(-1)
+                    self.polje=[vrstica[:] for vrstica in self.zgodovina[-1][0]]
                 return potezni_par
             else:
-                #print("minimax narava")
                 ocene=[]
                 poteze=self.poteze_narave(k)
                 if len(self.poteze_narave(k))==0:
@@ -147,9 +133,9 @@ class Igra:
                     self.polje[poteza[0]][poteza[1]]=4
                     (smt, vrednost4) = self.minimax(k, globina-1)
                     a=0.9*int(vrednost2)+0.1*int(vrednost4)
-                    print(a)
-                    ocene.append(a) 
+                    ocene.append(a)
                     self.polje[poteza[0]][poteza[1]]=0
+                self.na_potezi=IGRALEC
                 v=sum(ocene)/len(ocene)
                 return (None, v)
 
@@ -183,6 +169,8 @@ class Igra:
                 elif self.polje[i][j]!=0:
                     if self.polje[i][j+1]==0:
                         ocena+=1
+                    if self.polje[i+1][j]!=0:
+                            ocena+=1
         for j in range(3):
             if self.polje[3][j]==0:
                 if self.polje[3][j+1]!=0:
@@ -200,10 +188,10 @@ class Igra:
                     if self.polje[i][j+1]!=0:
                         ocena+=abs(self.polje[i][j]-self.polje[i][j+1])
                     elif self.polje[i+1][j]!=0:
-                        ocena+=abs(self.polje[i+1][j]-self.polje[i+1][j])
+                        ocena+=abs(self.polje[i][j]-self.polje[i+1][j])
         for j in range(3):
             if self.polje[3][j]!=0 and self.polje[3][j+1]!=0:
-                ocena+=abs(self.polje[i+1][j]-self.polje[i+1][j])
+                ocena+=abs(self.polje[i][j]-self.polje[i][j+1])
         return ocena
                 
     def vrednost_plosce(self):
@@ -214,15 +202,15 @@ class Igra:
         return ocena
         
 
-    def povleci_narava(self):
-        self.shrani_pozicijo(self.polje, IGRALEC)
-        self.nakljucno()
+    def povleci_narava(self, par):
+        if random.randint(1, 10)<=2: a=4
+        else: a=2
+        self.polje[par[0]][par[1]]=a
+        self.shrani_pozicijo(self.polje, NARAVA)
         self.na_potezi=IGRALEC
-        
         
 
     def povleci_igralec(self, poteza):
-        self.shrani_pozicijo(self.polje, NARAVA)
         if poteza=="gor":
             self.gor(self.polje)
         elif poteza=="dol":
@@ -231,8 +219,9 @@ class Igra:
             self.levo(self.polje)
         elif poteza=="desno":
             self.desno(self.polje)
+        self.shrani_pozicijo(self.polje, IGRALEC)
         self.na_potezi=NARAVA
-        
+
 
     def gor(self, seznam):
         self.premaknigor(seznam)
