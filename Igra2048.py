@@ -29,31 +29,33 @@ class Igra:
 
 
     def igra(self):
-        if self.konec():
-            print("KONEC")
-            print(time.time()-self.zacetek)
-        elif self.na_potezi==IGRALEC:
-            (poteza, vrednost)=self.minimax(3, 2)
-            print(self.poteze_igralca(self.polje))
-            print(poteza)
-            self.score=self.zgodovina[-1][2]
-            self.stevilo_potez+=1
-            self.povleci_igralec(poteza)
-            print(self.score)
-            print(self.stevilo_potez)
-            self.igra()
-        elif self.na_potezi==NARAVA:
-            par=self.nakljucno()
-            self.povleci_narava(par)
-            self.narisi()
-            self.igra()
+        while True:
+            if self.na_potezi==NARAVA:
+                par=self.nakljucno()
+                self.povleci_narava(par)
+                self.narisi()
+                self.igra()
+            else:
+                if self.konec():
+                    #print("KONEC")
+                    return
+                (poteza, vrednost)=self.minimax(3, 2)
+                print(self.poteze_igralca(self.polje))
+                print(poteza)
+                self.score=self.zgodovina[-1][2]
+                self.stevilo_potez+=1
+                self.povleci_igralec(poteza)
+                print(self.score)
+                print(self.stevilo_potez)
+                self.igra()
+
 
     def narisi(self):
         print("{0[0][0]:=5} {0[0][1]:=5} {0[0][2]:=5} {0[0][3]:=5}".format(self.polje))
         print("{0[1][0]:=5} {0[1][1]:=5} {0[1][2]:=5} {0[1][3]:=5}".format(self.polje))
         print("{0[2][0]:=5} {0[2][1]:=5} {0[2][2]:=5} {0[2][3]:=5}".format(self.polje))
         print("{0[3][0]:=5} {0[3][1]:=5} {0[3][2]:=5} {0[3][3]:=5}".format(self.polje))
-        
+
 
     def poteze_igralca(self, polje_kopija):
         seznam_potez=[]
@@ -153,7 +155,7 @@ class Igra:
         if len(prazni)<k:
             return prazni
         else: return random.sample(prazni, k)
-            
+
 
     def vrednost(self):
         prazni=2*self.vrednost_prazni()
@@ -162,7 +164,7 @@ class Igra:
         pari=self.pari()
         ocena=razlika-povprecje-pari
         return ocena
-        
+
     def vrednost_prazni(self):
         ocena=0
         for i in range(3):
