@@ -34,7 +34,6 @@ class Igra:
                 par=self.nakljucno()
                 self.povleci_narava(par)
                 self.narisi()
-                self.igra()
             else:
                 if self.konec():
                     #print("KONEC")
@@ -47,7 +46,6 @@ class Igra:
                 self.povleci_igralec(poteza)
                 print(self.score)
                 print(self.stevilo_potez)
-                self.igra()
 
 
     def narisi(self):
