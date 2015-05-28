@@ -1,0 +1,57 @@
+import csv
+import numpy
+
+def analiza(n):
+    ime = "rezultati_minimax"+str(n)+".csv"
+    file = open(ime, "r")
+    reader = csv.reader(file, delimiter =";")
+
+    # koncna plosca, najvecja, score, prazni, razlika, povprecje, par, rob, k, globina, cas
+    #rezultati = numpy.array(list(reader))
+
+    #unique_parametri = numpy.array(map(list, set(map(tuple, rezultati[:, 3:10]))))
+
+    allinall = []
+
+    #for parameter in unique_parametri:
+    #    #parameter_items = list(rezultati[numpy.where(numpy.array_equal(rezultati[:, 3:10], parameter))[0], 1])
+    #    for i in range(len(rezultati)):
+    #    povprecje = sum(parameter_items)/len(parameter_items)
+    #    allinall.append(parameter, povprecje)
+
+    rezultati=[]
+    for vrstica in reader:
+        rezultati.append(vrstica)
+
+
+
+    parametri = []
+
+    povprecje = 0
+    stevec = 0
+
+
+
+    for i, rezultat in enumerate(rezultati):
+        if parametri == []:
+            parametri.append([rezultat[3], rezultat[4], rezultat[5], rezultat[6], rezultat[7], rezultat[8], rezultat[9]])
+            stevec += 1
+        elif parametri[-1] == [rezultat[3], rezultat[4], rezultat[5], rezultat[6], rezultat[7], rezultat[8], rezultat[9]]:
+            povprecje += int(rezultat[1])
+            stevec += 1
+        else:
+            povprecje = povprecje/stevec
+            allinall.append([[int(rezultati[i-1][3]), int(rezultati[i-1][4]), int(rezultati[i-1][5]), int(rezultati[i-1][6]),
+                              int(rezultati[i-1][7]), int(rezultati[i-1][8]), int(rezultati[i-1][9])], povprecje])
+            povprecje = 0
+            stevec = 0
+            parametri = []
+
+
+    allinall = sorted(allinall, key=lambda l: l[-1], reverse=True)
+    p10 = allinall[0][0]
+    p11 = allinall[1][0]
+    p12 = allinall[2][0]
+
+
+    return [p10, p11, p12]
