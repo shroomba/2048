@@ -5,16 +5,27 @@ import random
 import time
 
 class Igra:
-    def __init__(self):
+    def __init__(self, parametri, stevilo):
         self.zgodovina=[]
         self.polje=[[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
         self.score=0
         self.stevilo_potez=0
         self.na_potezi=IGRALEC
-        self.novaigra()
+        self.printamo = False
+
+        # prazni, razlika, povprecje, par, rob, k, globina
+        self.prazni=parametri[0]
+        self.par=parametri[3]
+        self.razlika=parametri[1]
+        self.povprecje=parametri[2]
+        self.rob=parametri[4]
+        self.k=parametri[5]
+        self.globina=parametri[6]
+        self.stevilo=stevilo
 
 
     def novaigra(self):
+        print("nova igra")
         self.polje=[[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
         self.score=0
         self.zgodovina=[]
@@ -33,19 +44,15 @@ class Igra:
             if self.na_potezi==NARAVA:
                 par=self.nakljucno()
                 self.povleci_narava(par)
-                self.narisi()
+                if self.printamo: self.narisi()
             else:
                 if self.konec():
-                    #print("KONEC")
+                    self.koncaj()
                     return
-                (poteza, vrednost)=self.minimax(3, 2)
-                print(self.poteze_igralca(self.polje))
-                print(poteza)
+                (poteza, vrednost)=self.minimax(self.k, self.globina)
                 self.score=self.zgodovina[-1][2]
                 self.stevilo_potez+=1
                 self.povleci_igralec(poteza)
-                print(self.score)
-                print(self.stevilo_potez)
 
 
     def narisi(self):
@@ -82,21 +89,37 @@ class Igra:
             return True
         else: return False
 
+    def koncaj(self):
+        cas=time.time()-self.zacetek
+        print(cas)
+        najvecja = 0
+        for i in range(4):
+            for j in range(4):
+                if self.polje[i][j] > najvecja:
+                    najvecja = self.polje[i][j]
+        ime="rezultati_minimax"+str(self.stevilo)+".csv"
+        file=open(ime, "a")
+        # prazni, par, razlika, povprecje, rob, k, globina
+        string=str(self.zgodovina[-1][0])+";"+str(najvecja)+";"+str(self.score)+";"+str(self.prazni)+";"+str(self.razlika)+";"+str(self.povprecje)+";"\
+               +str(self.par)+";"+str(self.rob)+";"+str(self.k)+";"+str(self.globina)+";"+str(cas)+"\n"
+        file.write(string)
+        file.close()
+        print("konec igre")
+        return
+
     def shrani_pozicijo(self, polje, poteza):
         polje_kopija=[vrstica[:] for vrstica in polje]
         a=self.score
         self.zgodovina.append((polje_kopija, poteza, a))
 
     def nakljucno(self):
-        prazni_i=[]
-        prazni_j=[]
+        prazen = []
         for i in range(4):
             for j in range(4):
                 if self.polje[i][j]==0:
-                    prazni_i.append(i)
-                    prazni_j.append(j)
-        ena=random.randint(0, len(prazni_i)-1)
-        return [prazni_i[ena], prazni_j[ena]]
+                    prazen.append((i, j))
+        ena=random.randint(0, len(prazen)-1)
+        return prazen[ena]
 
     def poln(self, seznam):
         m=0
@@ -141,7 +164,8 @@ class Igra:
                     ocene.append(a)
                     self.polje[poteza[0]][poteza[1]]=0
                 self.na_potezi=IGRALEC
-                v=sum(ocene)/len(ocene)
+                # v=sum(ocene)/len(ocene)
+                v = min(ocene)
                 return (None, v)
 
     def poteze_narave(self, k):
@@ -156,11 +180,12 @@ class Igra:
 
 
     def vrednost(self):
-        prazni=2*self.vrednost_prazni()
-        razlika=self.vrednost_razlika()
-        povprecje=self.povprecna()
-        pari=self.pari()
-        ocena=razlika-povprecje-pari
+        prazni=self.prazni*self.vrednost_prazni()
+        razlika=self.razlika*self.vrednost_razlika()
+        povprecje=self.povprecje*self.povprecna()
+        pari=self.par*self.pari()
+        na_robu = self.na_robu()*self.rob
+        ocena=razlika+povprecje+pari+prazni+na_robu
         return ocena
 
     def vrednost_prazni(self):
@@ -239,6 +264,20 @@ class Igra:
             if self.polje[i][3]==self.polje[i+1][3]:
                 ocena+=self.polje[i][3]
         return ocena
+
+    def na_robu(self):
+        najvecja = 0
+        par = [0, 0]
+        for i in range(4):
+            for j in range(4):
+                if self.polje[i][j] > najvecja:
+                    najvecja = self.polje[i][j]
+                    par = [i, j]
+        i = par[0]
+        j = par[1]
+        if (i == 0 and j == 0) or (i == 3 and j == 0) or (i == 0 and j == 3) or (i == 3 and j == 3):
+            return najvecja
+        else: return 0
 
 
     def povleci_narava(self, par):
@@ -421,6 +460,3 @@ class Igra:
                     polje[i][4-j]=polje[i][4-j]*2
                     polje[i][3-j]=0
                     self.score+=polje[i][4-j]
-
-
-Igra()
